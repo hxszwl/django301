@@ -1,0 +1,42 @@
+			form {
+				border: 1px solid black;
+				margin: 0 auto;
+
+				height: 250px;
+				/*width: 100%;*/
+			}
+			.box_relative{
+				width: 450px;
+				height: 100px;
+				position: absolute; left: 0; top: 65%; right: 13%; bottom: 0;
+				margin: auto;
+				
+				}
+			.button1{
+				/*position: relative;*/
+				position:absolute;
+				right: 40px;
+				top: 50px;
+				display: inline-block;
+			}
+			.father0 {
+               position: relative;
+
+             }
+             
+            .child_div div{
+               display: inline-block;
+               }
+			#div1{ border-radius:5px;
+					border:1px;
+					padding:10px;
+					height: 200px;} 
+			#test1{min-height:250px;overflow-y:auto;max-height:300px;} 
+			#div_header{
+				width: 100%;
+				/*height: 285px;*/
+				/*margin: 0 auto;*/
+			}
+			.container{
+				width: 80%;
+			}

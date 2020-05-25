@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    {% load static %}
+    <script type="text/javascript" src="{% static 'js/jquery-3.0.0.min.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.serializejson.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" charset="UTF-8" src="{% static 'js/echarts.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/js001.js' %}"></script>
+    <link href="{% static 'css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'css/002.css' %}" rel="stylesheet" type="text/css"/>
+
+    <title>详情表</title>
+
+</head>
+
+<body>
+
+<div class="container" id="head1">
+    <form id="from_post" class="form-horizontal father0" method="post">
+        {% csrf_token %}
+        <div id="head2" class="child_div">
+            <div id="bb2">
+                <div id="" class="head1">
+                    <label><input type="checkbox" onclick="show_hide(this)" value="温度"/>
+                        <span id="">
+								温度
+								</span></label>
+                </div>
+                <div id="" class="head1">
+                    <label><input type="checkbox" onclick="show_hide(this)" value="电压"/>
+                        电压</label>
+                </div>
+                <div id="" class="head1">
+                    <label><input type="checkbox" onclick="show_hide(this)" value="电流"/>
+                        电流</label>
+                </div>
+                <div id="" class="head1">
+                    <label><input type="checkbox" onclick="show_hide(this)" value="其他"/>
+                        其他</label>
+                </div>
+            </div>
+        <hr>
+            <div id="bb3">
+                {% for value in tables_list %}
+                    <div class='bb1'><label><input type="checkbox" onClick='chaCloor(this)' class="input11"
+                                                   name="{{ value.names }}"
+                                                   value="{{ value.names }}"/>{{ value.names }}</label></div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="button1" id="head3">
+            <input type="button" name="button" id="button11" value="提交"/>
+        </div>
+        <div id="head4">
+            <div id="head4_inner">
+                <fieldset class="box_relative">
+                    <div class="control-group">
+                        <label class="control-label">开始时间</label>
+                        <div class="controls input-append date form_datetime" data-date=""
+                             data-date-format="yyyy-MM-dd HH:mm:ss" data-link-field="dtp_input1">
+                            <input size="16" type="text" value="" readonly name="开始时间" id="002">
+                            <span class="add-on"><i class="icon-remove"></i></span>
+                            <span class="add-on"><i class="icon-th"></i></span>
+                        </div>
+                        <input type="hidden" id="dtp_input1" value=""/><br/>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">结束时间</label>
+                        <div class="controls input-append date form_datetime" data-date=""
+                             data-date-format="yyyy-MM-dd HH:mm:ss" data-link-field="dtp_input2">
+                            <input size="16" type="text" value='' readonly name="结束时间" id="001">
+                            <span class="add-on"><i class="icon-remove"></i></span>
+                            <span class="add-on"><i class="icon-th"></i></span>
+                        </div>
+                        <input type="hidden" id="dtp_input2" value="" id="003"/><br/>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </form>
+</div>
+<div id="main" style="width: 1800px ;height:700px; margin:0 auto"></div>
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+    //			var ls = ['温度1', '温度2', '温度3'];
+
+    // 指定图表的配置项和数据
+    var option = {
+        // 给echarts图设置背景色
+        backgroundColor: '#eee', // -----------> // 给echarts图设置背景色
+        textStyle: {fontWeight: 'bold'},
+        title: {
+            text: '设备数据'
+        },
+        tooltip: {
+            trigger: 'axis',
+            aisxPointer: {
+                type: 'cross',
+                label: {
+                    backgroundColor: '#6a7985'
+                }
+            }
+        },
+        legend: {
+            data: [],
+            textStyle: {fontSize: 18},
+            position: 'bottom'
+
+
+        },
+
+        calculable: true,
+        toolbox: {
+            feature: {
+                dataZoom: {
+                    yAxisIndex: 'none'
+                },
+                dataView: {
+                    readOnly: false
+                },
+                magicType: {
+                    type: ['line', 'bar']
+                },
+                restore: {},
+                saveAsImage: {}
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: [{
+            type: 'category',
+//					boundaryGap: false,
+            data: [],
+            axisLabel: {
+            formatter: function (val) {
+                return val.substr(11,val.length)
+            }}
+        }],
+        yAxis: [{
+
+            type: 'value'
+        }],
+        series: []
+    };
+
+
+    var forbidRepeartClick = (function () {
+        var instance = null;
+        var canClick = true;
+
+        function Build() {
+            this.setClick = function (callback) {
+                if (canClick) {
+                    canClick = false;
+                    callback()
+                    setTimeout(function () {
+                        canClick = true;
+                    }, 2000)
+                } else {
+                    console.log('两秒之内限制重复点击')
+                }
+            }
+        }
+
+
+        if (!instance) {
+            instance = new Build();
+        }
+
+        return instance;
+    })()
+
+
+    $('#button11').click(function () {
+        forbidRepeartClick.setClick(function () {
+            var json_dict_2d = [];
+            var json_lists = [];
+            var json_dict_time = [];
+
+            //创建一个表单对象
+            var parms = $('#from_post').serializeJSON();
+            $.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}});
+            //从当前页面中已经有token的form表单中获取token值
+            $.ajax({
+{#                url: '/brl2/datas/',#}
+                url: '{% url "datas" %}',
+                type: 'POST',
+                dataType: 'json',
+                cache: false,
+                data: parms,
+                success: function (data) {
+                    if (data['data']) {
+                        option.series = [];
+                        option.legend.data = [];
+                        option.xAxis[0].data = [];
+                        alert(data['data']['data'])
+                    } else {
+                        myChart.clear();
+                        json_dict_2d = JSON.parse(data['json_dict_2d']);
+                        json_lists = JSON.parse(data['json_lists']);
+                        json_dict_time = JSON.parse(data['json_dict_time']);
+                        data1 = ta(json_lists, json_dict_2d);
+                        option.series = data1['series'];
+                        option.legend.data = json_lists;
+{#                        option.xAxis[0].data = json_dict_time.map(function(x){return x.substr(12,x.length)});#}
+                        option.xAxis[0].data = json_dict_time
+                        myChart.setOption(option);
+                    }
+                },
+                error : function (error) {
+                    console.log(error)
+                }
+            })
+        });
+    });
+    function ta(json_lists, json_dict_2d) {
+        var series = [];
+        for (i = 0; i < json_lists.length; i++) {
+            series.push({
+                name: json_lists[i],
+                type: 'line',
+                data: json_dict_2d[i],
+                //					stack: '值',
+                label: {
+                    normal: {
+                        show: true,
+                        textStyle: {fontSize: 14},
+                        position: 'bottom'
+                    }
+                }
+            })
+
+        }
+        return {'series': series}
+    }
+
+
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(option);
+    window.onresize = function () {
+        myChart.resize();
+    }
+    //          根据页面大小重新定义图形大小
+</script>
+<script type="text/javascript">
+    $('.form_datetime').datetimepicker({
+        language: 'zh-CN',
+        format: 'yyyy-mm-dd  hh:ii',
+        weekStart: 1,
+        todayBtn: 1,
+        autoclose: 1,
+        todayHighlight: 1,
+        startView: 2,
+        forceParse: 0,
+        endDate: new Date,
+        showMeridian: 1,
+    });
+    function start_time1() {
+        var formatDateTime = function (date) {
+                var y = date.getFullYear();
+                var m = date.getMonth() + 1;;
+                m = m < 10 ? ('0' + m) : m;
+                var d = date.getDate();
+                d = d < 10 ? ('0' + d) : d;
+                var h = date.getHours();
+                h=h < 10 ? ('0' + h) : h;
+                var minute = date.getMinutes();
+                minute = minute < 10 ? ('0' + minute) : minute;
+                var second=date.getSeconds();
+                second=second < 10 ? ('0' + second) : second;
+                return y + '-' + m + '-' + d+' '+h+':'+minute;
+            };
+
+        return formatDateTime(new Date())
+    };
+    $('input[name="结束时间"]')[0].value=start_time1();
+    function start_time2() {
+        var formatDateTime = function (date) {
+            var y = date.getFullYear();
+            var m = date.getMonth() + 1;
+            ;
+            m = m < 10 ? ('0' + m) : m;
+            var d = date.getDate();
+            d = d < 10 ? ('0' + d) : d;
+            return y + '-' + m + '-' + d + ' ' + "00" + ':' + "00";
+        };
+
+        return formatDateTime(new Date())
+    };
+    $('input[name="开始时间"]')[0].value=start_time2();
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var b = document.getElementsByTagName('input')
+        b[1].click(b[1])
+    })
+</script>
+</body>
+
+</html>
